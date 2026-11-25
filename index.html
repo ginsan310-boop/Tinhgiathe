@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tính Khối Lượng Giá Thể Xanh</title>
+    <!-- Tải Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tải Font Inter hỗ trợ tiếng Việt đẹp -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        eco: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between selection:bg-eco-200 selection:text-eco-900">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-eco-800 via-eco-700 to-emerald-700 text-white shadow-md">
+        <div class="max-w-5xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-white/20 p-2.5 rounded-2xl backdrop-blur-sm">
+                    <!-- Icon lá cây SVG -->
+                    <svg class="w-8 h-8 text-eco-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold tracking-tight">Trạm Phối Trộn Giá Thể Xanh</h1>
+                    <p class="text-eco-100 text-xs sm:text-sm">Công thức chuẩn 500g/túi • Đất sạch NAMIX, Vỏ bắp & Phân vi sinh</p>
+                </div>
+            </div>
+            <div class="bg-eco-900/50 border border-eco-500/30 px-4 py-2 rounded-xl text-center sm:text-right">
+                <span class="text-xs text-eco-200 block">Khối lượng tịnh chuẩn</span>
+                <span class="text-lg font-extrabold text-white">500g <span class="text-xs font-normal text-eco-200">/ 1 túi</span></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-5xl w-full mx-auto px-4 py-6 sm:px-6 lg:px-8 flex-grow">
+        
+        <!-- Thông báo nổi (Toast Message thay thế alert) -->
+        <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+            <div class="bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 text-sm font-medium">
+                <svg class="w-5 h-5 text-eco-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span id="toast-msg">Đã sao chép công thức!</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Cột trái: Thiết lập thông số & Tỷ lệ (7 cột) -->
+            <div class="lg:col-span-7 space-y-6">
+                
+                <!-- Card 1: Số lượng túi & Khối lượng mục tiêu -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 sm:p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-eco-100 text-eco-700 text-xs font-bold flex items-center justify-center">1</span>
+                            Quy Mô Đóng Gói
+                        </h2>
+                        <span class="text-xs font-medium bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg">1 túi = 500g</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+                        <div>
+                            <label for="bagCount" class="block text-sm font-medium text-slate-600 mb-1.5">Số lượng túi cần sản xuất</label>
+                            <div class="flex items-center">
+                                <button type="button" onclick="adjustBags(-1)" class="w-11 h-11 rounded-l-xl bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 font-bold text-lg flex items-center justify-center transition border border-r-0 border-slate-300">−</button>
+                                <input type="number" id="bagCount" value="1" min="1" max="10000" oninput="handleBagInput()" class="w-full h-11 text-center font-bold text-lg text-slate-800 border-y border-slate-300 focus:outline-none focus:ring-2 focus:ring-eco-500">
+                                <button type="button" onclick="adjustBags(1)" class="w-11 h-11 rounded-r-xl bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 font-bold text-lg flex items-center justify-center transition border border-l-0 border-slate-300">+</button>
+                            </div>
+                        </div>
+
+                        <div class="bg-eco-50/70 border border-eco-200/80 rounded-xl p-3.5 flex flex-col justify-center">
+                            <span class="text-xs font-medium text-eco-800">Tổng khối lượng hỗn hợp cần trộn:</span>
+                            <div class="flex items-baseline gap-2 mt-0.5">
+                                <span id="totalWeightDisplay" class="text-2xl font-extrabold text-eco-700">500 g</span>
+                                <span id="totalKgDisplay" class="text-xs font-semibold text-eco-600">(0.50 kg)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Các nút chọn nhanh số lượng túi -->
+                    <div class="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center gap-2">
+                        <span class="text-xs text-slate-500 mr-1">Chọn nhanh:</span>
+                        <button type="button" onclick="setBags(1)" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-eco-100 hover:text-eco-800 text-slate-700 transition">1 túi (500g)</button>
+                        <button type="button" onclick="setBags(5)" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-eco-100 hover:text-eco-800 text-slate-700 transition">5 túi (2.5kg)</button>
+                        <button type="button" onclick="setBags(10)" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-eco-100 hover:text-eco-800 text-slate-700 transition">10 túi (5kg)</button>
+                        <button type="button" onclick="setBags(20)" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-eco-100 hover:text-eco-800 text-slate-700 transition">20 túi (10kg)</button>
+                    </div>
+                </div>
+
+                    <!-- Card 2: Công thức & Tỷ lệ nguyên liệu (theo Gram) -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 sm:p-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                        <h2 class="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-eco-100 text-eco-700 text-xs font-bold flex items-center justify-center">2</span>
+                            Định Lượng Nguyên Liệu (gram / túi)
+                        </h2>
+                        <!-- Nút chọn công thức mẫu theo gram -->
+                        <div class="flex flex-wrap gap-1.5">
+                            <button type="button" onclick="applyPreset(250, 150, 100)" class="text-xs px-2.5 py-1.5 rounded-lg bg-eco-50 text-eco-700 hover:bg-eco-100 font-semibold border border-eco-200 transition">Tiêu chuẩn (250:150:100g)</button>
+                            <button type="button" onclick="applyPreset(200, 200, 100)" class="text-xs px-2.5 py-1.5 rounded-lg bg-amber-50 text-amber-800 hover:bg-amber-100 font-semibold border border-amber-200 transition">Thoát nước (200:200:100g)</button>
+                            <button type="button" onclick="applyPreset(250, 100, 150)" class="text-xs px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-semibold border border-emerald-200 transition">Giàu dinh dưỡng (250:100:150g)</button>
+                        </div>
+                    </div>
+
+                    <!-- Thanh kiểm tra tổng 500g -->
+                    <div id="weightStatusBox" class="mb-5 p-3 rounded-xl bg-eco-50 border border-eco-200 flex items-center justify-between transition-colors">
+                        <span class="text-xs sm:text-sm font-medium text-slate-700">Tổng khối lượng 1 túi:</span>
+                        <div class="flex items-center gap-2">
+                            <span id="totalBagGramText" class="text-base font-extrabold text-eco-700">500g / 500g</span>
+                            <button id="normalizeBtn" type="button" onclick="normalizeWeights()" class="hidden text-xs bg-rose-600 hover:bg-rose-700 text-white px-2.5 py-1 rounded-lg font-semibold shadow-sm transition">Cân bằng về 500g</button>
+                        </div>
+                    </div>
+
+                    <!-- Danh sách 3 nguyên liệu -->
+                    <div class="space-y-5">
+                        
+                        <!-- Nguyên liệu 1: Đất sạch NAMIX -->
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/70">
+                            <div class="flex justify-between items-center mb-2">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="w-3.5 h-3.5 rounded-full bg-emerald-600 shadow-sm"></span>
+                                    <div>
+                                        <h3 class="font-bold text-slate-800 text-sm sm:text-base">Đất sạch NAMIX <span id="badgePctNamix" class="text-xs font-semibold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded ml-1">50%</span></h3>
+                                        <p class="text-xs text-slate-500">Nền giá thể chính, giữ ẩm & cố định rễ</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <input type="number" id="gramNamix" value="250" min="0" max="500" step="5" oninput="syncFromNumber('namix')" class="w-20 text-right font-bold text-emerald-700 bg-white border border-slate-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                    <span class="text-sm font-bold text-slate-600">g</span>
+                                </div>
+                            </div>
+                            <input type="range" id="rangeNamix" value="250" min="0" max="500" step="5" oninput="syncFromRange('namix')" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600">
+                        </div>
+
+                        <!-- Nguyên liệu 2: Vỏ bắp đã xử lí -->
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/70">
+                            <div class="flex justify-between items-center mb-2">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="w-3.5 h-3.5 rounded-full bg-amber-500 shadow-sm"></span>
+                                    <div>
+                                        <h3 class="font-bold text-slate-800 text-sm sm:text-base">Vỏ bắp đã xử lí <span id="badgePctCorn" class="text-xs font-semibold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded ml-1">30%</span></h3>
+                                        <p class="text-xs text-slate-500">Tạo độ tơi xốp, thoáng khí, chống úng</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <input type="number" id="gramCorn" value="150" min="0" max="500" step="5" oninput="syncFromNumber('corn')" class="w-20 text-right font-bold text-amber-600 bg-white border border-slate-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+                                    <span class="text-sm font-bold text-slate-600">g</span>
+                                </div>
+                            </div>
+                            <input type="range" id="rangeCorn" value="150" min="0" max="500" step="5" oninput="syncFromRange('corn')" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-500">
+                        </div>
+
+                        <!-- Nguyên liệu 3: Phân hữu cơ vi sinh -->
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/70">
+                            <div class="flex justify-between items-center mb-2">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="w-3.5 h-3.5 rounded-full bg-stone-700 shadow-sm"></span>
+                                    <div>
+                                        <h3 class="font-bold text-slate-800 text-sm sm:text-base">Phân hữu cơ vi sinh <span id="badgePctCompost" class="text-xs font-semibold text-stone-700 bg-stone-200 px-1.5 py-0.5 rounded ml-1">20%</span></h3>
+                                        <p class="text-xs text-slate-500">Bổ sung vi sinh vật có lợi & dinh dưỡng</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <input type="number" id="gramCompost" value="100" min="0" max="500" step="5" oninput="syncFromNumber('compost')" class="w-20 text-right font-bold text-stone-700 bg-white border border-slate-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-stone-600">
+                                    <span class="text-sm font-bold text-slate-600">g</span>
+                                </div>
+                            </div>
+                            <input type="range" id="rangeCompost" value="100" min="0" max="500" step="5" oninput="syncFromRange('compost')" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-stone-700">
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cột phải: Bảng kết quả định lượng chi tiết (5 cột) -->
+            <div class="lg:col-span-5 space-y-6">
+                <div class="bg-white rounded-2xl shadow-md border border-slate-200 p-5 sm:p-6 sticky top-6">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                        <div>
+                            <h2 class="text-lg font-extrabold text-slate-800">Bảng Định Lượng Cân</h2>
+                            <p class="text-xs text-slate-500 mt-0.5">Khối lượng chính xác cần chuẩn bị</p>
+                        </div>
+                        <button type="button" onclick="copyFormula()" class="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 text-xs font-semibold px-3 py-2 rounded-xl transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                            </svg>
+                            Sao chép
+                        </button>
+                    </div>
+
+                    <!-- Thanh trực quan tỷ lệ -->
+                    <div class="my-5">
+                        <div class="flex justify-between text-xs font-semibold text-slate-500 mb-1.5">
+                            <span>Cấu trúc hỗn hợp</span>
+                            <span id="barBagLabel">1 túi (500g)</span>
+                        </div>
+                        <div class="w-full h-4 bg-slate-100 rounded-full overflow-hidden flex shadow-inner">
+                            <div id="barNamix" style="width: 50%" class="bg-emerald-600 transition-all duration-300" title="Đất sạch NAMIX"></div>
+                            <div id="barCorn" style="width: 30%" class="bg-amber-500 transition-all duration-300" title="Vỏ bắp đã xử lí"></div>
+                            <div id="barCompost" style="width: 20%" class="bg-stone-700 transition-all duration-300" title="Phân hữu cơ vi sinh"></div>
+                        </div>
+                    </div>
+
+                    <!-- Chi tiết từng nguyên liệu -->
+                    <div class="space-y-3.5">
+                        
+                        <!-- Kết quả NAMIX -->
+                        <div class="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200/80 flex items-center justify-between">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+                                    <span class="font-bold text-slate-800 text-sm">Đất sạch NAMIX</span>
+                                </div>
+                                <div class="text-xs text-slate-500 mt-1">
+                                    1 túi: <strong id="perBagNamix" class="text-slate-700">250 g</strong> (<span id="resPctNamix">50</span>%)
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span id="totalNamix" class="block text-xl font-extrabold text-emerald-700">250 g</span>
+                                <span id="totalNamixKg" class="text-xs font-medium text-emerald-600">0.250 kg</span>
+                            </div>
+                        </div>
+
+                        <!-- Kết quả Vỏ bắp -->
+                        <div class="p-4 rounded-xl bg-amber-50/60 border border-amber-200/80 flex items-center justify-between">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                                    <span class="font-bold text-slate-800 text-sm">Vỏ bắp đã xử lí</span>
+                                </div>
+                                <div class="text-xs text-slate-500 mt-1">
+                                    1 túi: <strong id="perBagCorn" class="text-slate-700">150 g</strong> (<span id="resPctCorn">30</span>%)
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span id="totalCorn" class="block text-xl font-extrabold text-amber-600">150 g</span>
+                                <span id="totalCornKg" class="text-xs font-medium text-amber-600">0.150 kg</span>
+                            </div>
+                        </div>
+
+                        <!-- Kết quả Phân hữu cơ vi sinh -->
+                        <div class="p-4 rounded-xl bg-stone-100/80 border border-stone-200 flex items-center justify-between">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-stone-700"></span>
+                                    <span class="font-bold text-slate-800 text-sm">Phân hữu cơ vi sinh</span>
+                                </div>
+                                <div class="text-xs text-slate-500 mt-1">
+                                    1 túi: <strong id="perBagCompost" class="text-slate-700">100 g</strong> (<span id="resPctCompost">20</span>%)
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span id="totalCompost" class="block text-xl font-extrabold text-stone-800">100 g</span>
+                                <span id="totalCompostKg" class="text-xs font-medium text-stone-600">0.100 kg</span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Tổng cộng chân bảng -->
+                    <div class="mt-5 pt-4 border-t-2 border-dashed border-slate-200 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 block">Tổng thành phẩm</span>
+                            <span id="summaryBags" class="text-sm font-bold text-slate-700">1 túi × 500g</span>
+                        </div>
+                        <div class="text-right">
+                            <span id="grandTotalGram" class="text-2xl font-black text-eco-700">500 g</span>
+                            <span id="grandTotalKg" class="block text-xs font-bold text-slate-500">0.500 kg</span>
+                        </div>
+                    </div>
+
+                    <!-- Lưu ý kỹ thuật -->
+                    <div class="mt-5 bg-blue-50/70 border border-blue-100 rounded-xl p-3.5 text-xs text-blue-900 leading-relaxed">
+                        <strong class="font-semibold block mb-1">💡 Mẹo phối trộn & đóng gói:</strong>
+                        Trộn đều <strong>Đất sạch NAMIX</strong> và <strong>Vỏ bắp</strong> trước để tạo khung tơi xốp, sau đó rải đều <strong>Phân hữu cơ vi sinh</strong> và đảo nhẹ để bảo toàn hệ vi sinh trước khi cân vào túi 500g.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-5 text-xs text-slate-400 border-t border-slate-200/60 mt-8">
+        Ứng dụng Tính Khối Lượng Giá Thể Xanh • Quy cách chuẩn 500g/túi
+    </footer>
+
+    <!-- JavaScript xử lý logic tính toán -->
+    <script>
+        // Hằng số khối lượng tịnh mỗi túi (gram)
+        const NET_WEIGHT_PER_BAG = 500;
+
+        // Khởi tạo trạng thái mặc định (tính theo gram cho 1 túi 500g)
+        let state = {
+            bags: 1,
+            namix: 250,
+            corn: 150,
+            compost: 100
+        };
+
+        /**
+         * Format số gram đẹp mắt (có dấu phẩy ngăn cách hàng nghìn)
+         */
+        function formatNumber(num) {
+            return Math.round(num * 10) / 10;
+        }
+
+        function formatGram(g) {
+            const rounded = Math.round(g * 10) / 10;
+            return rounded.toLocaleString('vi-VN') + ' g';
+        }
+
+        function formatKg(g) {
+            const kg = g / 1000;
+            return kg.toLocaleString('vi-VN', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + ' kg';
+        }
+
+        /**
+         * Điều chỉnh số lượng túi bằng nút +/-
+         */
+        function adjustBags(delta) {
+            const input = document.getElementById('bagCount');
+            let newVal = (parseInt(input.value) || 1) + delta;
+            if (newVal < 1) newVal = 1;
+            if (newVal > 10000) newVal = 10000;
+            input.value = newVal;
+            state.bags = newVal;
+            calculateAndRender();
+        }
+
+        /**
+         * Đặt nhanh số lượng túi
+         */
+        function setBags(count) {
+            document.getElementById('bagCount').value = count;
+            state.bags = count;
+            calculateAndRender();
+        }
+
+        /**
+         * Xử lý khi người dùng nhập tay số lượng túi
+         */
+        function handleBagInput() {
+            const input = document.getElementById('bagCount');
+            let val = parseInt(input.value);
+            if (isNaN(val) || val < 1) {
+                val = 1;
+            }
+            state.bags = val;
+            calculateAndRender();
+        }
+
+        /**
+         * Áp dụng các công thức mẫu (theo gram cho 1 túi 500g)
+         */
+        function applyPreset(namix, corn, compost) {
+            state.namix = namix;
+            state.corn = corn;
+            state.compost = compost;
+            updateInputsFromState();
+            calculateAndRender();
+            showToast(`Đã áp dụng công thức ${namix}g : ${corn}g : ${compost}g`);
+        }
+
+        /**
+         * Đồng bộ từ thanh trượt (range) sang ô nhập số (number)
+         * Tự động điều chỉnh 2 thành phần còn lại để tổng 1 túi luôn giữ 500g
+         */
+        function syncFromRange(changedKey) {
+            const val = parseInt(document.getElementById('range' + capitalize(changedKey)).value) || 0;
+            state[changedKey] = val;
+
+            // Tự động cân bằng 2 thành phần còn lại theo tỷ lệ tương đối của chúng
+            const others = ['namix', 'corn', 'compost'].filter(k => k !== changedKey);
+            const remaining = NET_WEIGHT_PER_BAG - val;
+            const currentOthersSum = state[others[0]] + state[others[1]];
+
+            if (currentOthersSum === 0) {
+                state[others[0]] = Math.floor(remaining / 2);
+                state[others[1]] = remaining - state[others[0]];
+            } else {
+                state[others[0]] = Math.round((state[others[0]] / currentOthersSum) * remaining);
+                state[others[1]] = remaining - state[others[0]];
+            }
+
+            updateInputsFromState();
+            calculateAndRender();
+        }
+
+        /**
+         * Đồng bộ từ ô nhập số (number) sang thanh trượt (range)
+         */
+        function syncFromNumber(changedKey) {
+            let val = parseFloat(document.getElementById('gram' + capitalize(changedKey)).value);
+            if (isNaN(val) || val < 0) val = 0;
+            if (val > NET_WEIGHT_PER_BAG) val = NET_WEIGHT_PER_BAG;
+            state[changedKey] = val;
+            document.getElementById('range' + capitalize(changedKey)).value = val;
+            calculateAndRender();
+        }
+
+        /**
+         * Cân bằng lại khối lượng 1 túi về đúng 500g nếu người dùng nhập tay bị lệch
+         */
+        function normalizeWeights() {
+            const sum = state.namix + state.corn + state.compost;
+            if (sum === 0) {
+                applyPreset(250, 150, 100);
+                return;
+            }
+            state.namix = Math.round((state.namix / sum) * NET_WEIGHT_PER_BAG);
+            state.corn = Math.round((state.corn / sum) * NET_WEIGHT_PER_BAG);
+            state.compost = NET_WEIGHT_PER_BAG - state.namix - state.corn;
+
+            updateInputsFromState();
+            calculateAndRender();
+            showToast('Đã cân bằng tổng khối lượng 1 túi về 500g');
+        }
+
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        function updateInputsFromState() {
+            document.getElementById('gramNamix').value = state.namix;
+            document.getElementById('rangeNamix').value = state.namix;
+            document.getElementById('gramCorn').value = state.corn;
+            document.getElementById('rangeCorn').value = state.corn;
+            document.getElementById('gramCompost').value = state.compost;
+            document.getElementById('rangeCompost').value = state.compost;
+        }
+
+        /**
+         * Hàm tính toán chính và cập nhật giao diện
+         */
+        function calculateAndRender() {
+            const totalBagGram = Math.round((state.namix + state.corn + state.compost) * 10) / 10;
+            const statusBox = document.getElementById('weightStatusBox');
+            const totalBagGramText = document.getElementById('totalBagGramText');
+            const normalizeBtn = document.getElementById('normalizeBtn');
+
+            totalBagGramText.textContent = `${totalBagGram}g / ${NET_WEIGHT_PER_BAG}g`;
+
+            // Kiểm tra cảnh báo nếu tổng 1 túi khác 500g
+            if (totalBagGram !== NET_WEIGHT_PER_BAG) {
+                statusBox.className = 'mb-5 p-3 rounded-xl bg-rose-50 border border-rose-300 flex items-center justify-between transition-colors';
+                totalBagGramText.className = 'text-base font-extrabold text-rose-600';
+                normalizeBtn.classList.remove('hidden');
+            } else {
+                statusBox.className = 'mb-5 p-3 rounded-xl bg-eco-50 border border-eco-200 flex items-center justify-between transition-colors';
+                totalBagGramText.className = 'text-base font-extrabold text-eco-700';
+                normalizeBtn.classList.add('hidden');
+            }
+
+            // Khối lượng trên 1 túi (gram)
+            const perBagNamix = state.namix;
+            const perBagCorn = state.corn;
+            const perBagCompost = state.compost;
+
+            // Tính phần trăm tương ứng để hiển thị tham chiếu
+            const denom = totalBagGram > 0 ? totalBagGram : NET_WEIGHT_PER_BAG;
+            const pctNamix = Math.round((perBagNamix / denom) * 1000) / 10;
+            const pctCorn = Math.round((perBagCorn / denom) * 1000) / 10;
+            const pctCompost = Math.round((perBagCompost / denom) * 1000) / 10;
+
+            document.getElementById('badgePctNamix').textContent = pctNamix + '%';
+            document.getElementById('badgePctCorn').textContent = pctCorn + '%';
+            document.getElementById('badgePctCompost').textContent = pctCompost + '%';
+
+            // Tính toán tổng khối lượng cho N túi
+            const totalNamix = perBagNamix * state.bags;
+            const totalCorn = perBagCorn * state.bags;
+            const totalCompost = perBagCompost * state.bags;
+            const grandTotal = totalNamix + totalCorn + totalCompost;
+
+            // Cập nhật hiển thị quy mô đóng gói
+            const targetTotalWeight = state.bags * NET_WEIGHT_PER_BAG;
+            document.getElementById('totalWeightDisplay').textContent = targetTotalWeight.toLocaleString('vi-VN') + ' g';
+            document.getElementById('totalKgDisplay').textContent = `(${(targetTotalWeight / 1000).toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kg)`;
+
+            // Cập nhật thanh trực quan
+            document.getElementById('barNamix').style.width = `${(perBagNamix / denom) * 100}%`;
+            document.getElementById('barCorn').style.width = `${(perBagCorn / denom) * 100}%`;
+            document.getElementById('barCompost').style.width = `${(perBagCompost / denom) * 100}%`;
+            document.getElementById('barBagLabel').textContent = `${state.bags} túi (${grandTotal.toLocaleString('vi-VN')}g)`;
+
+            // Cập nhật chi tiết từng nguyên liệu
+            document.getElementById('perBagNamix').textContent = formatGram(perBagNamix);
+            document.getElementById('resPctNamix').textContent = pctNamix;
+            document.getElementById('totalNamix').textContent = formatGram(totalNamix);
+            document.getElementById('totalNamixKg').textContent = formatKg(totalNamix);
+
+            document.getElementById('perBagCorn').textContent = formatGram(perBagCorn);
+            document.getElementById('resPctCorn').textContent = pctCorn;
+            document.getElementById('totalCorn').textContent = formatGram(totalCorn);
+            document.getElementById('totalCornKg').textContent = formatKg(totalCorn);
+
+            document.getElementById('perBagCompost').textContent = formatGram(perBagCompost);
+            document.getElementById('resPctCompost').textContent = pctCompost;
+            document.getElementById('totalCompost').textContent = formatGram(totalCompost);
+            document.getElementById('totalCompostKg').textContent = formatKg(totalCompost);
+
+            // Cập nhật tổng chân bảng
+            document.getElementById('summaryBags').textContent = `${state.bags} túi × ${totalBagGram}g`;
+            document.getElementById('grandTotalGram').textContent = formatGram(grandTotal);
+            document.getElementById('grandTotalKg').textContent = formatKg(grandTotal);
+        }
+
+        /**
+         * Sao chép kết quả định lượng vào bộ nhớ tạm
+         */
+        function copyFormula() {
+            const totalBagGram = state.namix + state.corn + state.compost;
+            const denom = totalBagGram > 0 ? totalBagGram : NET_WEIGHT_PER_BAG;
+            const pctNamix = Math.round((state.namix / denom) * 1000) / 10;
+            const pctCorn = Math.round((state.corn / denom) * 1000) / 10;
+            const pctCompost = Math.round((state.compost / denom) * 1000) / 10;
+
+            const totalNamix = state.namix * state.bags;
+            const totalCorn = state.corn * state.bags;
+            const totalCompost = state.compost * state.bags;
+            const grandTotal = totalNamix + totalCorn + totalCompost;
+
+            const textToCopy = 
+`CÔNG THỨC PHỐI TRỘN GIÁ THỂ XANH
+Quy mô: ${state.bags} túi (${totalBagGram}g/túi) - Tổng: ${formatGram(grandTotal)} (${formatKg(grandTotal)})
+-----------------------------------------
+1. Đất sạch NAMIX (${formatGram(state.namix)}/túi - ${pctNamix}%): ${formatGram(totalNamix)}
+2. Vỏ bắp đã xử lí (${formatGram(state.corn)}/túi - ${pctCorn}%): ${formatGram(totalCorn)}
+3. Phân hữu cơ vi sinh (${formatGram(state.compost)}/túi - ${pctCompost}%): ${formatGram(totalCompost)}`;
+
+            const textArea = document.createElement('textarea');
+            textArea.value = textToCopy;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast('Đã sao chép bảng định lượng!');
+            } catch (err) {
+                showToast('Không thể sao chép tự động');
+            }
+            document.body.removeChild(textArea);
+        }
+
+        /**
+         * Hiển thị thông báo Toast mượt mà
+         */
+        let toastTimeout;
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            toastMsg.textContent = message;
+            
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2500);
+        }
+
+        // Chạy tính toán lần đầu khi tải trang
+        window.addEventListener('DOMContentLoaded', calculateAndRender);
+    </script>
+</body>
+</html>
